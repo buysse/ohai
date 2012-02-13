@@ -29,12 +29,23 @@ provides "platform", "platform_version", "platform_family"
 require_plugin 'linux::lsb'
 
 # platform [ and platform_version ? ] should be lower case to avoid dealing with RedHat/Redhat/redhat matching 
-if lsb[:id] =~ /RedHat/i
+if File.exists?("/etc/oracle-release")
+  contents = File.read("/etc/oracle-release").chomp
+  platform "oracle"
+  platform_version get_redhatish_version(contents)
+elsif File.exists?("/etc/enterprise-release")
+  contents = File.read("/etc/enterprise-release").chomp
+  platform "oracle"
+  platform_version get_redhatish_version(contents)
+elsif lsb[:id] =~ /RedHat/i
   platform "redhat"
   platform_version lsb[:release]
 elsif lsb[:id] =~ /Amazon/i
- platform "amazon"
- platform_version lsb[:release]
+  platform "amazon"
+  platform_version lsb[:release]
+elsif lsb[:id] =~ /ScientificSL/i
+  platform "scientific"
+  platform_version lsb[:release]
 elsif lsb[:id]
   platform lsb[:id].downcase
   platform_version lsb[:release]
