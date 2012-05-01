@@ -30,9 +30,10 @@ extend Ohai::Mixin::Ec2Metadata
 def has_ec2_mac?
   network[:interfaces].values.each do |iface|
     unless iface[:arp].nil?
-      has_mac = iface[:arp].value?("fe:ff:ff:ff:ff:ff")
-      Ohai::Log.debug("has_ec2_mac? == true")
-      return true if has_mac
+      if iface[:arp].value?("fe:ff:ff:ff:ff:ff")
+        Ohai::Log.debug("has_ec2_mac? == true")
+        return true
+      end
     end
   end
   Ohai::Log.debug("has_ec2_mac? == false")
@@ -42,7 +43,7 @@ end
 def looks_like_ec2?
   # Try non-blocking connect so we don't "block" if 
   # the Xen environment is *not* EC2
-  has_ec2_mac? && can_metadata_connect?(EC2_METADATA_ADDR,80)
+  hint?('ec2') || has_ec2_mac? && can_metadata_connect?(EC2_METADATA_ADDR,80)
 end
 
 if looks_like_ec2?
